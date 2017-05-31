@@ -32,6 +32,7 @@
 
 @implementation SDCellAutoHeightManager
 {
+    /// 用来存储cell高度 ["\(indexPath.section)-\(indexPath.row)": NSNumber(height)]
     NSMutableDictionary *_cacheDictionary;
     NSMutableDictionary *_modelCellsDict;
 }
@@ -72,12 +73,14 @@
     _modelCellsDict = [NSMutableDictionary new];
 }
 
+/// 不同于FDTemplateLayoutCell在使用前必须注册的方式，SDAutoLayout自己注册cell
 - (void)registerCellWithCellClass:(Class)cellClass
 {
     [_modelTableview registerClass:cellClass forCellReuseIdentifier:NSStringFromClass(cellClass)];
     self.modelCell = [_modelTableview dequeueReusableCellWithIdentifier:NSStringFromClass(cellClass)];
     
     if (!self.modelCell.contentView.subviews.count) {
+        // !!! 这个地方非常巧妙，直接通过cellClass来查找bundle中有无对应nib文件，如果有的话就用nib来注册cell
         NSString *path = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat:@"%@.nib", NSStringFromClass(cellClass)] ofType:nil];
         if (path) {
             self.modelCell = nil;
@@ -115,6 +118,7 @@
     [_subviewFrameCacheDict removeAllObjects];
 }
 
+/// indexPath数据缓存用的key为 "\(indexPath.section)-\(indexPath.row)"
 - (NSString *)cacheKeyForIndexPath:(NSIndexPath *)indexPath
 {
     return [NSString stringWithFormat:@"%ld-%ld", (long)indexPath.section, (long)indexPath.row];
@@ -129,6 +133,7 @@
     }];
 }
 
+/// 当删除一个indexPath的时候 需要更新该indexPath后原有所有缓存数据的key
 - (void)deleteThenResetHeightCache:(NSIndexPath *)indexPathToDelete
 {
 
@@ -159,6 +164,7 @@
 
 }
 
+/// 当在某一分区的开头插入count条数据时 需要更新该分区对应的原有所有缓存数据的key
 - (void)insertNewDataAtTheBeginingOfSection:(NSInteger)section newDataCount:(NSInteger)count
 {
     NSMutableDictionary *tempHeightCacheDict = [NSMutableDictionary new];
@@ -181,8 +187,10 @@
     [_subviewFrameCacheDict addEntriesFromDictionary:tempFrameCacheDict];
 }
 
+/// 在指定的[indexPath]插入数据 需要更新每一个indexPath后所有原有数据的key
 - (void)insertNewDataAtIndexPaths:(NSArray *)indexPaths
 {
+    /// 将indexPaths数组拆分成["\(section)": [indexPath]] 字典存储。注：[indexPath]数组并不是section下的所有indexPath
     NSMutableDictionary *sectionsdict = [NSMutableDictionary new];
     for (NSIndexPath *indexPath in indexPaths) {
         NSString *sectionkey = [@(indexPath.section) stringValue];
@@ -192,13 +200,15 @@
         NSMutableArray *arr = sectionsdict[sectionkey];
         [arr addObject:indexPath];
     }
+    /// 遍历所有的sectiondict的allKeys
     for (NSString *sectionkey in sectionsdict.allKeys) {
+        /// tempHeightCaches 用来临时存储某一分区下的所有cell高度
         NSMutableArray *tempHeightCaches = [NSMutableArray new];
         NSMutableArray *tempFrameCaches = [NSMutableArray new];
         NSInteger section = [sectionkey integerValue];
         NSInteger rowCount = [self.modelTableview numberOfRowsInSection:section];
         if (rowCount <= 0) {
-            continue;
+            continue; // continue跳出本次循环 继续下一个循环
         } else {
             for (int i = 0; i < rowCount; i++) {
                 [tempHeightCaches addObject:[NSNull null]];
@@ -210,7 +220,7 @@
             NSArray *res = [key componentsSeparatedByString:@"-"];
             long originalSection = [res.firstObject integerValue];
             long row = [res.lastObject integerValue];
-            if (originalSection == section) {
+            if (originalSection == section) { // 找到对应的section
                 NSNumber *heightCache = _cacheDictionary[key];
                 NSArray *frameCache = _subviewFrameCacheDict[key];
                 [tempHeightCaches setObject:heightCache atIndexedSubscript:row];
@@ -361,6 +371,8 @@
 
 @implementation UITableView (SDAutoTableViewCellHeight)
 
+/// 相较于UITableView-FDTemplateLayoutCell 少了对改变分区的几个代理方法的交换重写
+/// 造成的影响：如果用用到那几个方法，就必须清空所有cell高度缓存
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
