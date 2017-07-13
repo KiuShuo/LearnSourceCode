@@ -137,6 +137,8 @@ public final class Map {
 	}
 	
 	public func value<T>() -> T? {
+        print(currentValue ?? "")
+        print(currentValue as? T ?? "")
 		return currentValue as? T
 	}
 	
