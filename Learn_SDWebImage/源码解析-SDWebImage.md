@@ -5,10 +5,6 @@
 #### 怎么下载图片？同步 or 异步
 解析`SDWebImageDownloader`和`SDWebImageDownloaderOperation`类：  
 
-
-#### 怎么存储图片？存到哪（内存memory or 磁盘disk）、怎么存（同步 or 异步）  
-	内存：使用系统自带的NSCache管理  
-	磁盘：
 	
 #### 缓存与清除缓存
 解析`SDImageCache`和`SDImageCacheConfig`类：  
@@ -26,12 +22,13 @@
 	`-deleteOldFiles`函数（操作磁盘中存储的图片文件）：  
 	* 首先会删除磁盘中所有过期文件；  
 	* 然后会比较剩余文件大小是否超设置的上限，如果超的话会按照图片文件最后编辑的时间，逐一删除时间较长的文件，直至剩余的图片文件大小小于设置上限的一半。
-
-	
-	
 	
 #### 取图片的原则  
 先去内存中查找，如果找不到再去磁盘中查找，找到后再在内存中存一份。
+
+#### 工作流程
+
+![](/Users/liushuo199/Documents/LearnNote/--kiushuo/image/SDWebImage工作流程.png)
 
 ### 知识点
 
@@ -84,7 +81,20 @@ attempt to traverse symbolic links that point to directories.
 #### initialize
 [iOS - + initialize 与 +load](http://www.jianshu.com/p/9368ce9bb8f9)
 
-#### NSURLSession
+#### KVC的高阶用法
 
+找出数组字典中相同key值的字典的value值组成的数组：
 
+``` 
+let arr: NSArray = [["a": "1"], ["a": "2"], ["1": "3"], ["b": "1"]]
+let aArr: NSMutableArray = NSMutableArray(array: arr.value(forKey: "a") as! NSArray)
+// aArr = ["1", "2", "<null>", "<null>"]
+// removeObject(identicalTo: deleteValue)与removeObject(_: deleteValue)的区别：前者是删除数组中地址与deleteValue相同的所有元素，后者是删除数组中与deleteValue相等的所有元素
+aArr.removeObject(identicalTo: NSNull())
+// aArr = ["1", "2"]
+```
+
+#### NSOperation
+
+源码中的SDWebImageDowloaderOperation继承自NSOperation.   
 
