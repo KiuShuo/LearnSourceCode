@@ -1,10 +1,23 @@
 # SDWebImage
 
+总体逻辑：  
+![](/Users/liushuo199/Documents/LearnNote/--kiushuo/image/SDWebImage逻辑.png)
+
  围绕SDWebImage的几个核心问题进行解析
 
-#### 怎么下载图片？同步 or 异步
+#### 怎么下载图片？
 解析`SDWebImageDownloader`和`SDWebImageDownloaderOperation`类：  
 
+`SDWebImageDownloader`作用： 主要用来协调（或者也可以说是一层分装）`SDImageCache`和`SDWebImageDownloader`，来为`UIView+WebCache`等提供接口。
+
+下载过程的`cancel`分两种方式：  
+1. 取消整个操作队列；  
+2. 取消某一个下载操作。
+
+下载过程中能否暂停？    
+可以设置操作队列暂停。
+
+#### 动图是怎么处理的？
 	
 #### 缓存与清除缓存
 解析`SDImageCache`和`SDImageCacheConfig`类：  
@@ -55,7 +68,6 @@
 [iOS判断是否在主线程的正确姿势](http://www.jianshu.com/p/7f68a3d5b07d)  
 
 
-
 ```
 You use it to locate, create, copy, and move files and directories. You also 
 use it to get information about a file or directory or change some of its 
@@ -79,7 +91,9 @@ attempt to traverse symbolic links that point to directories.
 
 ```
 #### initialize
-[iOS - + initialize 与 +load](http://www.jianshu.com/p/9368ce9bb8f9)
+[iOS - + initialize 与 +load](http://www.jianshu.com/p/9368ce9bb8f9)  
+简单来说，`+ (void)initialize`类似于懒加载方法，实在第一次使用一个类的时候（这个第一次类初始化之前，可以用来初始化静态变量）执行，且只会执行一次；  
+`+ (void)load`方法通常在`main`函数之前调用。  
 
 #### KVC的高阶用法
 
@@ -96,5 +110,32 @@ aArr.removeObject(identicalTo: NSNull())
 
 #### NSOperation
 
-源码中的SDWebImageDowloaderOperation继承自NSOperation.   
+源码中的SDWebImageDowloaderOperation继承自NSOperation，通过自定义的NSOperation来实现图片的下载操作。    
+
+#### NS_REFINED_FOR_SWIFT
+
+作用：当OC和Swift混编的时候，系统会自动将OC的方法名转换为Swift，但是有些时候，我们不想直接使用系统转变过来的函数， 这时候我们就可以在相应的OC方法名称后面加上NS_REFINED_FOR_SWIFT关键字，这时候转换的Swift函数前面就多了两个下划线，这时候我们就可以用原来的方法名或者新起一个，来改进实现，如下：
+
+```
+@interface Color : NSObject
+ 
+- (void)getRed:(nullable CGFloat *)red
+         green:(nullable CGFloat *)green
+          blue:(nullable CGFloat *)blue
+         alpha:(nullable CGFloat *)alpha NS_REFINED_FOR_SWIFT;
+ 
+@end
+// 改进实现机制，通过元组的方式返回数据
+extension Color {
+    var RGBA: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        var r: CGFloat = 0.0
+        var g: CGFloat = 0.0
+        var b: CGFloat = 0.0
+        var a: CGFloat = 0.0
+        __getRed(red: &r, green: &g, blue: &b, alpha: &a)
+        return (red: r, green: g, blue: b, alpha: a)
+    }
+}
+
+```
 
