@@ -1,5 +1,25 @@
 ### Learn_MJRefresh
 
+#### 基本原理
+
+通过`runtime`在`scrollView`的扩展中添加`mj_header``mj_footer`属性，并在两个属性分别的`setter`方法中将他们添加到`scrollView`上。    
+
+在`mj_header/mj_footer`将要添加到他们的父视图上的时候，为他们`scrollView`类型的父视图中添加几个KVO监控`contentOffset、contnetSize、pan手势`的变化。  
+
+根据`contentOffset`偏移量的变化，确定`mj_header/mj_footer`漏出来的比列，进而更新当前刷新控件的状态。  
+
+根据`contentSize`的变化，实时更新`mj_footer`的位置。  
+
+根据`pan手势`的变化，更新`MJRefreshAutoFooter`类型的`mj_footer`的刷新状态。
+
+根据刷新状态的不同，更新`mj_header/mj_footer`上显示的状态label上的文本信息以及箭头、菊花和动画。
+
+#### 使用时的注意点
+
+下拉刷新控件上展示的上次刷新时间，默认只会存储一份，所以不同界面显示的历史时间是同一份，因此如果需要显示这个时间，需要根据不同的界面设置不同的存储`key`值。  
+
+根据不同的需求选择不同的上拉刷新控件。  
+`MJRefreshAutoFooter`和`MJRefreshBackFooter`是显示在两个不同位置的上拉刷新控件。由于前者显示位置的特殊性，决定了他只有普通闲置、正在刷新、没有更多数据三种状态；而后者跟下拉刷新控件类似 还有松开就可以进入刷新状态状态。 所以前者也可以叫做可以自动刷新的上拉刷新控件。
 
 #### WebView 
 注意：WebView虽然可以滑动，但并不是继承自UIScrollView，而是继承自UIView。
@@ -9,7 +29,7 @@
 
 |Class／文件|作用|
 |---|---|
-|`UIView(MJExtension)`| 方便设置和获取view的坐标、大小、`origin`等属性值 |
+|`UIView(MJExtension)`| 方便设置和获取`view`的坐标、大小、`origin`等属性值 |
 |`UIScrollView(MJExtension)`| 方便设置和获取`UIScrollView`的相关的`contentOffset、contentSize、contentInset`等属性值 |
 |`NSBundle(MJRefresh)`| `MJRefresh`需要的资源文件，包含刷新时需要的箭头和本地化提示语 |
 |`UIScrollView(MJRefresh)`文件| 文件包含了多个扩展，主要作用是：</br> 1. `UIScrollView(MJRefresh)` 给`UIScrollView`添加`mj_header``mj_footer`属性、添加`mj_reloadDataBlock`属性；</br> 2. `UITableView(MJRefresh)、UICollectionView(MJRefresh)`通过`runtime`实现方法交换，在`reloadData`方法执行完之后，执行`blok`获取当前tableView的cell数或者collectionView的item数量。|

@@ -25,6 +25,8 @@ refreshFooter的继承关系从上到下依次为：
 
 `MJRefreshAutoFooter`的`mj_footer`紧跟在`scrollView`的内容显示区域的底部; `MJRefreshBackFooter`的`mj_footer`紧跟在`scrollView`的底部（值的是内容或者`scrollView`相比高度更大者的底部）。
 
+`MJRefreshAutoFooter`和`MJRefreshBackFooter`显示位置不同。由于前者显示位置的特殊性，决定了他只有普通闲置、正在刷新、没有更多数据三种状态；而后者跟下拉刷新控件类似 还有松开就可以进入刷新状态状态。 所以前者也可以叫做可以自动刷新的上拉刷新控件。
+
 
 #### `MJRefreshFooter`
 
