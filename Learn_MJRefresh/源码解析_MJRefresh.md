@@ -12,27 +12,40 @@
 |`UIView(MJExtension)`| 方便设置和获取view的坐标、大小、`origin`等属性值 |
 |`UIScrollView(MJExtension)`| 方便设置和获取`UIScrollView`的相关的`contentOffset、contentSize、contentInset`等属性值 |
 |`NSBundle(MJRefresh)`| `MJRefresh`需要的资源文件，包含刷新时需要的箭头和本地化提示语 |
-|`UIScrollView(MJRefresh)`文件| 文件包含了多个扩展，主要作用是：<br> 1. `UIScrollView(MJRefresh)` 给`UIScrollView`添加`mj_header``mj_footer`属性、添加`mj_reloadDataBlock`属性；<br> 2. `UITableView(MJRefresh)、UICollectionView(MJRefresh)`通过`runtime`实现方法交换，在`reloadData`方法执行完之后，执行`blok`获取当前tableView的cell数或者collectionView的item数量。|
+|`UIScrollView(MJRefresh)`文件| 文件包含了多个扩展，主要作用是：</br> 1. `UIScrollView(MJRefresh)` 给`UIScrollView`添加`mj_header``mj_footer`属性、添加`mj_reloadDataBlock`属性；</br> 2. `UITableView(MJRefresh)、UICollectionView(MJRefresh)`通过`runtime`实现方法交换，在`reloadData`方法执行完之后，执行`blok`获取当前tableView的cell数或者collectionView的item数量。|
+
+#### 解析`UIScrollView+MJRefresh`
+
+<font color='red'>`refreshHeader`或者`refresheFooter`是什么时候被添加到相应的`scrollView`上的？</font>  
+
+1. 在`UIScrollView`的扩展中 通过`runtime`为其添加了`mj_header``mj_footer`属性；  
+2. 在`mj_header``mj_footer`的setter方法里面，将`mj_header``mj_footer`插入到了`scrollView`的最底层。  
+
+<font color='red'>MJRefreshFooter中的`@property (assign, nonatomic, getter=isAutomaticallyHidden) BOOL automaticallyHidden;`</font>
+
+当设置为`true`时 通过`tableView/collectionView`自动刷新后反馈到的当前列表的`cell／item`数是否为0来隐藏或者显示`refreshFooter`.
+
+核心代码：  
+1. 在`scrollView`的扩展中通过runtime添加`mj_reloadDataBlock`属性；  
+2. 在`refreshFooter`将要添加到`superView`上的时候，判断`superView`是否为`tableView／collectionView`，如果是 设置`scrollView`的`mj_reloadDateBlock`属性；  
+3. 在`UIScrollView`的扩展中通过`runtime`交换方法 来将`-(void)reloadData`方法交换为自定义的方法；  
+4. 在自定义的`reloadData`方法中 先执行系统的`reloadData`再执行`mj_reloadDateBlock(tabeView.cellCount/collection.itemCount)`从而执行步骤2中添加的`block`;
+
+
+
+
 
 
 #### 关于刷新时间
 
 上次刷新时间记录在`NSUserDefaults`中，并且默认情况都使用同一个`key(MJRefreshHeaderLastUpdatedTimeKey)`，这样的话默认只会存储最后刷新的那个界面的时间，所以在任何时候取出来的时间并不真正代表每一个界面的最后一次刷新时间，因此，使用默认的`key`来存储是没有意义的。
 
-#### 继承关系
-refreshHeader的继承关系从上到下依次为：  
-[`MJRefreshComponent`](#Learn_MJRefreshComponent)  
-[`MJRefreshHeader`](#Learn_ MJRefreshHeader)  
-[`MJRefreshStateHeader`](#Learn_MJRefreshStateHeader)  
-[`MJRefreshNormalHeader`](#Learn_MJRefreshNormalHeader) [`MJRefreshGifHeader`](#)
-
-
 
 #### <a id="Learn_MJRefreshComponent"></a>`MJRefreshComponent`刷新控件基类
 
 继承自`UIView`，是`MJFooterView、MJHeaderView`的基类。
 
-定义刷新控件的状态：  
+<font color='red'>定义刷新控件的状态：</font>  
 
 ```
 typedef NS_ENUM(NSInteger, MJRefreshState) {
@@ -49,7 +62,7 @@ typedef NS_ENUM(NSInteger, MJRefreshState) {
 };
 ```
 
-定义几个block:  
+<font color='red'>定义几个block:</font>  
 
 ```
 /** 进入刷新状态的回调 */
@@ -60,7 +73,7 @@ typedef void (^MJRefreshComponentbeginRefreshingCompletionBlock)();
 typedef void (^MJRefreshComponentEndRefreshingCompletionBlock)();
 ```
 
-刷新状态的变换：  
+<font color='red'>刷新状态的变换：</font>  
 
 ```
 #pragma mark - 刷新回调
@@ -128,7 +141,7 @@ typedef void (^MJRefreshComponentEndRefreshingCompletionBlock)();
 */
 - (void)placeSubviews NS_REQUIRES_SUPER;
 
-// 在刷新控件将要移动到父视图上时，添加三个观察者，用来监控并通知下面几个变化：
+// 在刷新控件将要移动到父视图上时，添加三个观察者（使用KVO），用来监控并通知下面几个变化：
 
 /** 当scrollView的contentOffset发生改变的时候调用 */
 - (void)scrollViewContentOffsetDidChange:(NSDictionary *)change NS_REQUIRES_SUPER;
@@ -141,34 +154,6 @@ typedef void (^MJRefreshComponentEndRefreshingCompletionBlock)();
 
 ```
 
-#### <a id="Learn_ MJRefreshHeader"></a>`MJRefreshHeader`调整刷新状态，实现刷新悬停
-主要用来监控`scrollView`的`contenOffset`偏移量来调整刷新状态，实现刷新悬停
-
-通过KVO实时观察`scrollView`的`contentOffset`的变化 来决定状态的改变：  
-1. 当`scrollView`被拖拽 原始状态`state = MJRefreshStateIdle`时，当向下拖拽的距离超过`refreshHeaderView`的高度的时候，状态`state`改变为`MJRefreshStatePulling`松开就会刷新；  
-2. 当`scrollView`被拖拽 原始状态`state = MJRefreshStatePulling`时，当往上拖拽使得`scrollView`向下的偏移量不大于`refreshHeaderView`的高度的时候，状态又恢复到原始`state = MJRefreshStateIdle`；  
-3. 当`scrollView`没有被拖拽 原始状态`state = MJRefreshStatePulling`时，执行`- (void)beginRefreshing`开始刷新，改变状态为`state = MJRefreshStateRefreshing`;
-4. 当`state = MJRefreshStateRefreshing`正在刷新过程中，会对比当前的向下偏移量与`refreshHeaderView`的高度值，取两者中较小的一个作为当前`scrollView`的`insertTop`值从而实现刷新悬停以及可向上移动的显示效果。
-
-#### <a id="Learn_MJRefreshStateHeader"></a>`MJRefreshStateHeader`创建、显示、更新`stateLabel、timeLabel`
-  
-1. 在`- (void)prepare`方法中设置`stateLabel`在不同状态下要显示的文字提示，存储在`titles`字典中；
-2. 在`-(void)placeSubviews`方法中布局`stateLabel`和`timeLabel`；    
-3. 在`- (void)setState:(MJRefreshState)state`状态发生改变的时候更改`stateLabel`和`timeLabel`上显示的内容。
-
-
-#### <a id="Learn_MJRefreshNormalHeader"></a>`MJRefreshNormalHeader`创建、显示和更新arrowView、loadingView(UIActivityIndicatoeView)
-
-1. 在`- (void)prepare`方法中设置`activityIndicatorView`的默认样式；  
-2. 在`-(void)placeSubviews`方法中创建`arrowView`和`loadingView`； 
-3. 在`- (void)setState:(MJRefreshState)state`状态发生改变的时候更改`arrowView`和`loadingView`的现实状况。
-
-#### <a id="Learn_MJRefreshGifHeader"></a>'MJRefreshGifHeader'
-
-1. 在`- (void)prepare`方法中设置`gitView`与`textLabel`之间的默认间距；  
-2. 在`-(void)placeSubviews`方法中创建`gitView`并调整好其在`headerView`上的位置；  
-3. 同时向外界提供了设置不同状态要显示的图片数组，用于显示动画；  
-4. 在`- (void)setState:(MJRefreshState)state`状态发生改变的时候来设置`gitView`在不同状态的的`animationImages`，并控制动画的开始与结束。
 
 #### 小tip
 
