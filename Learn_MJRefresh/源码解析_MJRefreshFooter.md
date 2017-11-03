@@ -10,13 +10,13 @@
 #### 继承关系
 refreshFooter的继承关系从上到下依次为：  
 `MJRefreshComponent`  
-[`MJRefreshFooter`](#Learn_ MJRefreshFooter)  
-[`MJRefreshAutoFooter`](#Learn_MJRefreshBackFooter)   
-[`MJRefreshAutoStateFooter`](#Learn_MJRefreshBackStateFooter)   
-[`MJRefreshAutoNormalFooter`](#Learn_MJRefreshBackNormalFooter) [`MJRefreshAutoGifFooter`](#Learn_MJRefreshBackGifFooter)
+[`MJRefreshFooter`](#Learn_MJRefreshFooter)  
+[`MJRefreshAutoFooter`](#Learn_MJRefreshAutoFooter)   
+[`MJRefreshAutoStateFooter`](#Learn_MJRefreshAutoStateFooter)   
+[`MJRefreshAutoNormalFooter`](#Learn_MJRefreshAutoNormalFooter) [`MJRefreshAutoGifFooter`](#Learn_MJRefreshAutoGifFooter)
 
 `MJRefreshComponent`  
-[`MJRefreshFooter`](#Learn_ MJRefreshFooter)  
+[`MJRefreshFooter`](#Learn_MJRefreshFooter)  
 [`MJRefreshBackFooter`](#Learn_MJRefreshBackFooter)   
 [`MJRefreshBackStateFooter`](#Learn_MJRefreshBackStateFooter)   
 [`MJRefreshBackNormalFooter`](#Learn_MJRefreshBackNormalFooter) [`MJRefreshBackGifFooter`](#Learn_MJRefreshBackGifFooter)
@@ -28,7 +28,7 @@ refreshFooter的继承关系从上到下依次为：
 `MJRefreshAutoFooter`和`MJRefreshBackFooter`显示位置不同。由于前者显示位置的特殊性，决定了他只有普通闲置、正在刷新、没有更多数据三种状态；而后者跟下拉刷新控件类似 还有松开就可以进入刷新状态状态。 所以前者也可以叫做可以自动刷新的上拉刷新控件。
 
 
-#### `MJRefreshFooter`
+#### <a id='Learn_MJRefreshFooter'></a>`MJRefreshFooter`
 
 1. 提供两个便利构造方法；
 2. 提供两个供外部使用的更新状态方法；
@@ -46,7 +46,7 @@ refreshFooter的继承关系从上到下依次为：
 4. 提供`automaticallyHidden`属性（[实现原理](/Users/liushuo199/Documents/LearnNote/LearnSourceCode/Learn_MJRefresh/源码解析_MJRefresh.md)）
 
 
-## `MJRefreshAutoFooter`
+## <a id='Learn_MJRefreshAutoFooter'></a>`MJRefreshAutoFooter`
 
 会自动刷新的上拉刷新控件  `mj_footer`一直吸附在`scrollView`的内容展示区域之后。
 
@@ -60,27 +60,27 @@ refreshFooter的继承关系从上到下依次为：
 通过KVO监控`scrollView contentOffset`的变化 来判断需要自动刷新的时机。  
 通过KVO监控`scrollView`平移手势的变化 来判断手势结束后是否需要开启上拉刷新。  
 
-#### `MJRefreshAutoStateFooter`
+#### <a id='Learn_MJRefreshAutoStateFooter'></a>`MJRefreshAutoStateFooter`
 <font color='red'>核心功能：</font> 布局`mj_footer` 设置各个状态下`mj_footer`上要显示的文本 当状态变化时更新`mj_footer`上显示的内容。  
 
-#### `MJRefreshAutoStateFooter`
+#### <a id='Learn_MJRefreshAutoStateFooter'></a>`MJRefreshAutoStateFooter`
 <font color='red'>核心功能：</font> 添加菊花视图 控制不同状态下的菊花动画开启关闭状态。  
 
-#### `MJRefreshAutoGifFooter`
+#### <a id='Learn_MJRefreshAutoGifFooter'></a>`MJRefreshAutoGifFooter`
 <font color='red'>核心功能：</font> 创建动画视图 控制不同状态下动画视图要显示的图片。
 
-## `MJRefreshBackFooter`
+## <a id='Learn_MJRefreshBackFooter'></a>`MJRefreshBackFooter`
 一直吸附在`scrollView`的最后面(当`scrollView`能滑动时，吸附在能滑动的最后面；当`scrollView`不能滑动时，吸附在`scroolView`的最后面)
 
 <font color='red'>核心功能：</font>   
 通过KVO监控`scrollView contentSize`的变化 调整`mj_footer`的位置 使其一直吸附在`scroolView`的最后面。  
 通过KVO监控`scrollView contentOffset`的变化 调整刷新控件的状态。  
 
-#### `MJRefreshBackStateFooter`
+#### <a id='Learn_MJRefreshBackStateFooter'></a>`MJRefreshBackStateFooter`
 <font color='red'>核心功能：</font> 布局`mj_footer` 设置各个状态下`mj_footer`上要显示的文本 当状态变化时更新`mj_footer`上显示的内容。   
 
-#### `MJRefreshBackNormalFooter`
+#### <a id='Learn_MJRefreshBackNormalFooter'></a>`MJRefreshBackNormalFooter`
 <font color='red'>核心功能：</font> 布局`mj_footer` 添加箭头和菊花 根据状态的变化更新箭头菊花的样式。  
 
-#### `MJRefreshBackGifFooter`
+#### <a id='Learn_MJRefreshBackGifFooter'></a>`MJRefreshBackGifFooter`
 <font color='red'>核心功能：</font> 布局`mj_footer` 添加动画显示的`imageView` 设置不同状态下要显示的动画图片 根据状态的变化更新动画。
