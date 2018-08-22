@@ -1,6 +1,8 @@
 # sourceCodeAnalysis
 源码解析笔记
 
+[具体分析见wiki](https://github.com/KiuShuo/sourceCodeAnalysis/wiki)  
+
 解析原则：  
 
 1. 首先绝不是使用说明，也不是一行一行的全部解析，而是学习组织架构和思想。
